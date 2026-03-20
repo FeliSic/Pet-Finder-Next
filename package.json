@@ -1,0 +1,44 @@
+{
+  "name": "project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.9",
+    "@types/pg": "^8.16.0",
+    "cloudinary": "^2.9.0",
+    "dotenv": "^17.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "next": "16.1.6",
+    "next-cloudinary": "^6.17.5",
+    "next-plugin-svgr": "^1.1.12",
+    "nextjs-cors": "^2.2.1",
+    "nodemailer": "^8.0.1",
+    "parse-bearer-token": "^1.0.1",
+    "pg": "^8.18.0",
+    "pg-hstore": "^2.3.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "sequelize": "^6.37.7",
+    "styled-components": "^6.3.9",
+    "swr": "^2.4.0",
+    "web-push": "^3.6.7",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,35 @@
+name: Cron Jobs
+
+on:
+  schedule:
+    - cron: "0 * * * *" # cada hora
+    - cron: "0 3 * * *" # cada día a las 3am
+
+jobs:
+  cleanup-auth:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 * * * *' # solo cada hora
+    steps:
+      - name: Limpiar códigos de autenticación expirados
+        run: curl https://tu-app.vercel.app/api/cron/cleanup-auth
+
+  report-weekly-reminder:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 3 * * *' # solo a las 3am
+    steps:
+      - name: Recordatorio semanal al dueño
+        run: curl https://tu-app.vercel.app/api/cron/report-weekly-reminder
+
+  report-expiry-warning:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 3 * * *' # solo a las 3am
+    steps:
+      - name: Aviso 24hs antes de expirar (día 29)
+        run: curl https://tu-app.vercel.app/api/cron/report-expiry-warning
+
+  cleanup-reports:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 3 * * *' # solo a las 3am
+    steps:
+      - name: Eliminar reportes expirados (día 30)
+        run: curl https://tu-app.vercel.app/api/cron/cleanup-reports

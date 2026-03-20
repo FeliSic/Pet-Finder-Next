@@ -1,0 +1,39 @@
+/* global.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1; /* para que el main ocupe todo el espacio disponible */
+}
+
+@media (min-width: 768px){
+  main{
+    flex-direction: row;
+  }
+}
+
+:root {
+  --azul: #4F7CAC;
+  --azul-oscuro: #201E50;
+  --celeste: #91E5F6;
+  --amarillo: #FFC700;
+  --fucsia: #E75A7C;
+  --radius: 8px;
+}
+
