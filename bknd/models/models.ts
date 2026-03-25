@@ -6,12 +6,15 @@ import sequelizeClient from "./db";
 interface PetAttributes {
   id?: number;
   userId: number;
-  userEmail: string; 
+  userEmail: string;
+  name: string;
+  description: string; 
   active: boolean; 
   petStatus: string;
   lastSeen: string;
   latitude: number,
-  longitude: number, 
+  longitude: number,
+  imageUrl: string; 
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -20,11 +23,14 @@ export class Pets extends Model<PetAttributes> implements PetAttributes {
   declare id?: number;
   declare userId: number;
   declare userEmail: string;
+  declare name: string;
+  declare description: string;
   declare active: boolean;
   declare petStatus: string;
   declare lastSeen: string; 
   declare latitude: number;
   declare longitude: number; 
+  declare imageUrl: string;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -98,12 +104,20 @@ Pets.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'users', // tabla users
+        model: 'Owner_pets', // tabla users
         key: 'id',
       },
       onDelete: 'CASCADE',
     },
       userEmail: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+      name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+      description: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -127,6 +141,10 @@ Pets.init(
   },
   longitude: {
     type: DataTypes.FLOAT,
+    allowNull: false,
+  },
+    imageUrl: {
+    type: DataTypes.STRING,
     allowNull: false,
   }
   },
@@ -253,7 +271,7 @@ export async function syncDatabase() {
 
   syncPromise = (async () => {
     try {
-      await sequelizeClient.sync({ force: true });
+      await sequelizeClient.sync();
       console.log("✅ Tablas sincronizadas");
     } catch (error) {
       console.error("❌ Error sincronizando tablas:", error);

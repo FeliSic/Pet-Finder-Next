@@ -55,7 +55,7 @@ export const sendingEmail = async (req: Request) => {
   logger.debug(`Código almacenado en la base de datos para el usuario ID: ${owner.id}`, authRecord);
   // Aquí iría la lógica para enviar el email con el código
   // y enviar el código por email.
-  await sendEmail(email, 'Tu código de autenticación', `Tu código es: ${code}`);
+  // await sendEmail(email, 'Tu código de autenticación', `Tu código es: ${code}`);
   logger.debug(`codigo enviado al email: ${email}`);
   // Al final, envías una respuesta
   return new Response(JSON.stringify({ success: true,  message: "Email procesado correctamente." }), { status: 200});
@@ -92,7 +92,7 @@ export async function verifyAuthCode(request: Request) {
   const token = generateToken(owner.id, '2h');
   logger.debug(`Código verificado. Token generado para el usuario ID: ${owner.id}`, token);
 
-  return new Response(JSON.stringify({ token, email: owner.email }), { status: 200 });
+  return new Response(JSON.stringify({ token, email: owner.email, userId: owner.id }), { status: 200 });
 }
 
 // ---------------------------------------------------------------------------------------------

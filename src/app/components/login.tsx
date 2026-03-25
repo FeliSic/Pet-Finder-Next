@@ -37,9 +37,10 @@ export default function LogIn() {
     const result = await getToken(email, code);
     if (result.success) {
       localStorage.setItem('apiToken', result.token || '');
-      console.log('Token guardado:', result.token);
-      window.location.href = '/home';
-    } else {
+      localStorage.setItem('userEmail', result.email || '');
+      localStorage.setItem('userId', result.userId?.toString() || '');
+    window.location.href = '/home';
+  }  else {
       alert('Error getting token: ' + result.error);
     }
   };

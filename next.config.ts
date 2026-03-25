@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: false,
   compiler: {
     styledComponents: true,
   },
-}
+};
 
-module.exports = nextConfig
+export default nextConfig;
