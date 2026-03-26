@@ -35,6 +35,7 @@ export default function LogIn() {
   const handleTokenSubmit = async (e: any) => {
     e.preventDefault();
     const result = await getToken(email, code);
+    console.log('Resultado completo de getToken:', result);
     if (result.success) {
       localStorage.setItem('apiToken', result.token || '');
       localStorage.setItem('userEmail', result.email || '');

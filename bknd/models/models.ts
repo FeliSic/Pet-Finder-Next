@@ -19,7 +19,7 @@ interface PetAttributes {
   updatedAt?: Date;
 }
 
-export class Pets extends Model<PetAttributes> implements PetAttributes {
+export class PetsFind extends Model<PetAttributes> implements PetAttributes {
   declare id?: number;
   declare userId: number;
   declare userEmail: string;
@@ -93,7 +93,7 @@ export class PushSubscription extends Model<PushSubscriptionAttributes> implemen
 // Tables Section -------------------------------------------------------------------------------------------------------------------
 
 
-Pets.init(
+PetsFind.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -150,7 +150,7 @@ Pets.init(
   },
   {
     sequelize: sequelizeClient,
-    modelName: "Pets",
+    modelName: "Pets_Find",
     tableName: "pets",
     timestamps: true,
   }
@@ -243,8 +243,8 @@ PushSubscription.init(
 
 // ✅ Función para definir relaciones (se llama después)
 function setupAssociations() {
-  Owner.hasMany(Pets, { foreignKey: 'userId', as: 'pets' });
-  Pets.belongsTo(Owner, { foreignKey: 'userId', as: 'owner' });
+  Owner.hasMany(PetsFind, { foreignKey: 'userId', as: 'pets' });
+  PetsFind.belongsTo(Owner, { foreignKey: 'userId', as: 'owner' });
 
   Owner.hasOne(AuthOwner, { foreignKey: 'userId' });
   AuthOwner.belongsTo(Owner, { foreignKey: 'userId' });

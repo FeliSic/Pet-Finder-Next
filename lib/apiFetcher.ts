@@ -46,25 +46,33 @@ export function sendAuthEmail(email: string, telephone: number): Promise<{ succe
 }
 
 
-export function getToken(email: string, code: string): Promise<{   success: boolean; token?: string; email?: string;userId?: number;error?: string  }> {
+export function getToken(email: string, code: string): Promise<{
+  success: boolean;
+  token?: string;
+  email?: string;
+  userId?: number;
+  error?: string;
+}> {
   return fetch('/api/auth/token', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code }),
   })
     .then(response => response.json())
     .then(data => {
       if (data.token) {
         localStorage.setItem('apiToken', data.token);
-        return { success: true, token: data.token };
+        return {
+          success: true,
+          token: data.token,
+          email: data.email,   
+          userId: data.userId, 
+        };
       } else {
         return { success: false, error: data.error || 'Authentication failed' };
       }
     });
 }
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Products Fetchings -----------------------------------------------------------------------------------------------------------------------------------------------------------

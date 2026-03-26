@@ -10,8 +10,9 @@ const Rectangle = styled.div`
   opacity: 1;
   width: 550px;
   margin: 20px;
+  background-color: #242424 !important;
   margin-bottom: 10px;
-  height: 650px;
+  height: 950px;
   display: flex; /* Agregado */
   flex-direction: column; /* Alinea en columna */
   justify-content: flex-end; /* Alinea al final (parte inferior) */
@@ -42,10 +43,10 @@ export const Name = styled(Subtitle)`
 
 
 const OtherRectangle = styled.div`
-height: 250px;
-background-color: #242424 !important;
-top: 234px;
+height: 550px;
+margin: 20px 0;
 gap: 20px;
+background-color: #242424 !important;
 left: 2px;
 display: flex;
 justify-content: center;
@@ -57,7 +58,7 @@ background-color: var(--fucsia);
 
 export const ImageContainer = styled.div`
   width: 100%;
-  height: 421px; /* 321 - 84 (altura de OtherRectangle) */
+  height: 100%; /* 321 - 84 (altura de OtherRectangle) */
   overflow: hidden;
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
@@ -91,16 +92,18 @@ export const CreateReportButton = styled(FucsiaButton)`
   margin-top: 70px;
   border-radius: 5px;
 `
+
+
 interface CardProps {
   // modo visualización
   description?: string;
   name?: string;
   src?: string;
-  LabelDesc?: string;
-  lastSeen?: string;
+  LabelDesc?: string;      // ubicación (dirección)
   ReportID?: string;
   onNavigate?: () => void;
   isFeatured?: boolean;
+
   // modo creación/edición
   isEditing?: boolean;
   onChangeName?: (val: string) => void;
@@ -108,6 +111,13 @@ interface CardProps {
   onChangeLastSeen?: (val: string) => void;
   onChangeImage?: (file: File) => void;
   onSubmit?: () => void;
+
+  // nuevos callbacks para acciones
+  onRenew?: () => void;
+  onGiveNotice?: () => void;
+
+  // inyectar mapa
+  mapComponent?: React.ReactNode;
 }
 
 export function PetCard({ 
@@ -122,50 +132,93 @@ export function PetCard({
   onChangeLastSeen,
   onChangeImage,
   onSubmit,
+  mapComponent,
+  onRenew,
+  onGiveNotice,
 }: CardProps) {
   return (
     <Rectangle onClick={onNavigate} style={{ border: '5px solid #000' }}>
-      <ImageContainer>
+      <ImageContainer style={{ objectFit: "cover" }}>
         {isEditing ? (
-          <input 
-            type="file" 
-            accept="image/*"
-            onChange={(e) => onChangeImage?.(e.target.files![0])} 
-          />
+          <>
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => onChangeImage?.(e.target.files![0])} 
+            />
+            {src && src !== 'ejemploPet.jpg' && (
+              <img 
+                src={src} 
+                alt="Vista previa" 
+                style={{ width: '100%', maxHeight: '100%', objectFit: 'cover', marginTop: '8px' }} 
+              />
+            )}
+          </>
         ) : (
           <Image src={src} />
         )}
       </ImageContainer>
+
       <OtherRectangle>
         {isEditing ? (
-          <Input style={{width: "80%"}}
+          <Input 
+            style={{ width: "80%" }}
             placeholder="Nombre y especie/raza"
+            value={name}
             onChange={(e) => onChangeName?.(e.target.value)}
           />
         ) : (
           <Name>{name}</Name>
         )}
-        
-          {isEditing ? (
-            <Input style={{width: "80%"}}
-              placeholder="Descripción de la mascota"
-              onChange={(e) => onChangeDescription?.(e.target.value)}
-            />
-          ) : (
-            <Description>{description}</Description>
-          )}
-        
-        
-          {isEditing ? (
-            <Input style={{width: "80%"}}
-              placeholder="Última ubicación vista"
-              onChange={(e) => onChangeLastSeen?.(e.target.value)}
-            />
-          ) : (
-            <span>{LabelDesc}</span>
-          )}
-        
+
+        {isEditing ? (
+          <Input 
+            style={{ width: "80%" }}
+            placeholder="Descripción de la mascota"
+            value={description}
+            onChange={(e) => onChangeDescription?.(e.target.value)}
+          />
+        ) : (
+          <p style={{ margin: '8px 0' }}>{description}</p>   // 👈 Cambiado para evitar textarea
+        )}
+
+        {/* Aquí va el mapa si existe */}
+        {isEditing && mapComponent}
+
+        {isEditing ? (
+          <Input 
+            style={{ width: "80%" }}
+            placeholder="Última ubicación vista"
+            value={LabelDesc}
+            onChange={(e) => onChangeLastSeen?.(e.target.value)}
+          />
+        ) : (
+          <span>{LabelDesc}</span>
+        )}
+
+        {/* Botones solo en modo visualización y si existen los callbacks */}
+        {!isEditing && (onRenew || onGiveNotice) && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px', width: '100%' }}>
+            {onRenew && (
+              <GreenButton 
+                onClick={onRenew}
+                style={{ flex: 1, padding: '8px' }}
+              >
+                🔄 Renovar
+              </GreenButton>
+            )}
+            {onGiveNotice && (
+              <GreenButton 
+                onClick={onGiveNotice}
+                style={{ flex: 1, padding: '8px' }}
+              >
+                📢 Dar aviso
+              </GreenButton>
+            )}
+          </div>
+        )}
       </OtherRectangle>
+
       {isEditing && (
         <GreenButton 
           style={{ width: "100%", padding: "10px" }}
@@ -177,8 +230,6 @@ export function PetCard({
     </Rectangle>
   );
 }
-
-
 
 
 
