@@ -1,56 +1,39 @@
 // app/api/pets/nearby/route.ts
-import sequelizeClient from '../../../../../bknd/models/db';
-import { QueryTypes } from 'sequelize';
+// app/api/pets/nearby/route.ts
+// app/api/pets/nearby/route.ts
+import { NextResponse } from 'next/server';
+import { PetsFind } from 'bknd/models/models';
+import { Op, literal } from 'sequelize';
+import sequelize from 'bknd/models/db'; // asegúrate que exporta la instancia
 
-const RADIUS_KM = 10;
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const lat = parseFloat(searchParams.get('lat') || '');
+  const lng = parseFloat(searchParams.get('lng') || '');
+  const radius = parseInt(searchParams.get('radius') || '500');
 
-export async function POST(request: Request) {
-  const { latitude, longitude } = await request.json();
+  if (isNaN(lat) || isNaN(lng)) {
+    return NextResponse.json({ error: 'Coordenadas inválidas' }, { status: 400 });
+  }
 
-  const pets = await sequelizeClient.query(
-    `
-    SELECT *, 
-      ST_Distance(
-        ST_MakePoint(longitude, latitude)::geography,
-        ST_MakePoint(:lng, :lat)::geography
-      ) / 1000 AS distance_km
-    FROM pets
-    WHERE active = true
-    AND ST_DWithin(
-      ST_MakePoint(longitude, latitude)::geography,
-      ST_MakePoint(:lng, :lat)::geography,
-      :radius
-    )
-    ORDER BY distance_km ASC
-    `,
-    {
-      replacements: {
-        lat: latitude,
-        lng: longitude,
-        radius: RADIUS_KM * 1000 // PostGIS trabaja en metros
+  try {
+    const pets = await PetsFind.findAll({
+      where: {
+        active: true,
+        [Op.and]: literal(
+          `ST_DWithin(
+            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326),
+            ${radius}
+          )`
+        )
       },
-      type: QueryTypes.SELECT
-    }
-  );
+      attributes: ['id', 'name', 'description', 'imageUrl', 'lastSeen', 'latitude', 'longitude'],
+    });
 
-  console.log(`Reportes encontrados en ${RADIUS_KM}km: ${pets.length}`);
-
-  return new Response(JSON.stringify({ success: true, pets }), { status: 200 });
+    return NextResponse.json({ success: true, pets });
+  } catch (error) {
+    console.error('Error en nearby:', error);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
 }
-
-
-
-
-// esto va en el frontend al apretar en Iniciar Geolocalizacion
-navigator.geolocation.getCurrentPosition(async (position) => {
-  const { latitude, longitude } = position.coords;
-  
-  const res = await fetch('/api/pets/nearby', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ latitude, longitude })
-  });
-  
-  const data = await res.json();
-  // data.pets → tarjetas de reportes cercanos
-});

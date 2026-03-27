@@ -2,6 +2,7 @@ import { PetsFind } from 'bknd/models/models';
 import { geocodeAddress } from 'lib/geocoding';
 import cloudinary from 'lib/cloudinary';
 
+
 export async function createReport(req: Request) {
   const formData = await req.formData();
 
@@ -36,6 +37,8 @@ export async function createReport(req: Request) {
   lat = coords.latitude;
   lng = coords.longitude;
   }
+
+
 
   // Subir imagen a Cloudinary
   const bytes = await file.arrayBuffer();

@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, GeometryDataType, Model } from "sequelize";
 import sequelizeClient from "./db";
 
 // Interface Section -------------------------------------------------------------------------------------------------------------------
