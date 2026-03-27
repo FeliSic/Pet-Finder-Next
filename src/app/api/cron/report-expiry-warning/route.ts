@@ -1,6 +1,6 @@
 // report-expiry-warning/route.ts
 import { Op } from 'sequelize';
-import { Pets, Owner } from 'bknd/models/models';
+import { PetsFind, Owner } from 'bknd/models/models';
 import sendEmail from 'lib/nodemailer_email';
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
   const desde = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
   const hasta = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
 
-  const reportes = await Pets.findAll({
+  const reportes = await PetsFind.findAll({
     where: {
       createdAt: { [Op.between]: [desde, hasta] },
       active: true

@@ -14,7 +14,8 @@ interface PetAttributes {
   lastSeen: string;
   latitude: number,
   longitude: number,
-  imageUrl: string; 
+  imageUrl: string;
+  lastReminderSent?: Date; 
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -31,6 +32,7 @@ export class PetsFind extends Model<PetAttributes> implements PetAttributes {
   declare latitude: number;
   declare longitude: number; 
   declare imageUrl: string;
+  declare lastReminderSent: Date;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -146,6 +148,11 @@ PetsFind.init(
     imageUrl: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+    lastReminderSent: {
+    type: DataTypes.DATE,
+     allowNull: true,        
+    defaultValue: null,
   }
   },
   {

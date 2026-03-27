@@ -21,15 +21,30 @@ export function AllMyReports() {
   }, []);
 
   const fetchReports = async () => {
-    const userId = localStorage.getItem('userId');
-    const userEmail = localStorage.getItem('userEmail');
-    console.log('userId', userId, 'userEmail', userEmail);
+  const userId = localStorage.getItem('userId');
+  try {
     const res = await fetch('/api/pets/MyReports', {
       headers: { userId: userId! },
     });
-    const result = await res.json();
-    if (result.success) setReports(result.pets);
-  };
+    const text = await res.text(); // Obtén el texto bruto
+    console.log('Respuesta:', text); // Míralo en la consola
+    const result = JSON.parse(text);
+    if (result.success) {
+      const reportsWithDays = result.pets.map((report: any) => {
+        const createdAt = new Date(report.createdAt);
+        const now = new Date();
+        const diffTime = createdAt.getTime() + 30 * 24 * 60 * 60 * 1000 - now.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return { ...report, daysRemaining };
+      });
+      setReports(reportsWithDays);
+    } else {
+      console.error('Error del servidor:', result.error);
+    }
+  } catch (error) {
+    console.error('Error al parsear JSON:', error);
+  }
+};
 
     const handleNewReport = () => {
     setShowCard(true);
@@ -103,6 +118,39 @@ export function AllMyReports() {
     }
   };
 
+
+  const handleRenewReport = async (reportId: string) => {
+  const userId = localStorage.getItem('userId');
+  const res = await fetch('/api/cron/renew', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reportId, userId }),
+  });
+  const result = await res.json();
+  if (result.success) {
+    // Recargar la lista para actualizar días restantes
+    fetchReports();
+  } else {
+    alert('Error al renovar: ' + result.error);
+  }
+};
+
+const handleCompleteReport = async (reportId: string) => {
+  const userId = localStorage.getItem('userId');   // 👈 obtén el userId
+
+  const res = await fetch('/api/cron/complete', {  // 👈 asegúrate que la ruta sea correcta
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reportId, userId }),    // 👈 ahora sí envías ambos
+  });
+  const result = await res.json();
+  if (result.success) {
+    fetchReports(); // recargar la lista
+  } else {
+    alert('Error al marcar como completado: ' + result.error);
+  }
+};
+
   return (
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "start", width: "100vw", alignItems: "center", padding: 0, margin: 0, minHeight: "100vh", backgroundColor: "#111" }}>
       
@@ -114,16 +162,10 @@ export function AllMyReports() {
     description={report.description}
     src={report.imageUrl}
     LabelDesc={report.lastSeen}
-    onRenew={() => {
-      // Aquí llamarás al endpoint de renovación
-      console.log('Renovar reporte', report.id);
-      alert('Función de renovación (próximamente)');
-    }}
-    onGiveNotice={() => {
-      // Aquí llamarás al endpoint de completar (dar aviso de encontrado)
-      console.log('Marcar como completado', report.id);
-      alert('Reporte marcado como completado (próximamente)');
-    }}
+    daysRemaining={report.daysRemaining}
+    onRenew={handleRenewReport}
+    reportId={report.id}
+    onComplete={handleCompleteReport}
   />
     ))}
 

@@ -113,8 +113,10 @@ interface CardProps {
   onSubmit?: () => void;
 
   // nuevos callbacks para acciones
-  onRenew?: () => void;
-  onGiveNotice?: () => void;
+  daysRemaining?: number;          // días que le quedan al reporte
+  onRenew?: (reportId: string) => void;  // función para renovar
+  reportId?: string;               // ID del reporte (para identificar)
+  onComplete?: (reportId: string) => void;
 
   // inyectar mapa
   mapComponent?: React.ReactNode;
@@ -133,8 +135,10 @@ export function PetCard({
   onChangeImage,
   onSubmit,
   mapComponent,
+  daysRemaining,
+  reportId,
   onRenew,
-  onGiveNotice,
+  onComplete,
 }: CardProps) {
   return (
     <Rectangle onClick={onNavigate} style={{ border: '5px solid #000' }}>
@@ -197,26 +201,27 @@ export function PetCard({
         )}
 
         {/* Botones solo en modo visualización y si existen los callbacks */}
-        {!isEditing && (onRenew || onGiveNotice) && (
-          <div style={{ display: 'flex', gap: '10px', marginTop: '12px', width: '100%' }}>
-            {onRenew && (
-              <GreenButton 
-                onClick={onRenew}
-                style={{ flex: 1, padding: '8px' }}
-              >
-                🔄 Renovar
-              </GreenButton>
-            )}
-            {onGiveNotice && (
-              <GreenButton 
-                onClick={onGiveNotice}
-                style={{ flex: 1, padding: '8px' }}
-              >
-                📢 Dar aviso
-              </GreenButton>
-            )}
-          </div>
-        )}
+          {!isEditing && daysRemaining !== undefined && (
+            <div style={{ marginTop: '8px', fontSize: '0.8rem', color: daysRemaining <= 1 ? 'red' : 'white' }}>
+              ⏳ {daysRemaining} días restantes
+              {daysRemaining <= 1 && (
+                <GreenButton 
+                  style={{ marginLeft: '10px', padding: '4px 8px', fontSize: '0.7rem' }}
+                  onClick={() => onRenew?.(reportId!)}
+                >
+                  Renovar
+                </GreenButton>
+              )}
+            </div>
+          )}
+            {!isEditing && reportId && onComplete && (
+            <GreenButton 
+              style={{ marginLeft: '10px', padding: '4px 8px', fontSize: '0.7rem' }}
+              onClick={() => onComplete(reportId!)}
+            >
+            ✅ Encontrado
+            </GreenButton>
+          )}
       </OtherRectangle>
 
       {isEditing && (
