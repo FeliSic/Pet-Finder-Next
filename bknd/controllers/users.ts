@@ -1,6 +1,5 @@
 import { Owner, AuthOwner } from '../models/models';
 import { Op } from "sequelize";
-import sendEmail from "../../lib/nodemailer_email";
 import { generateToken, verifyToken } from "../../lib/jwt-auth";
 import logger from "../../lib/winston-logger";
 import parseBearerToken from "parse-bearer-token";
@@ -11,6 +10,7 @@ import parseBearerToken from "parse-bearer-token";
 
 export const sendingEmail = async (req: Request) => {
   const body = await req.json()
+  const name = body.name
   const email = body.email
   const telephone = body.telephone
   logger.debug(`Solicitud de envío de email recibida para: ${email}`);
@@ -21,8 +21,8 @@ export const sendingEmail = async (req: Request) => {
   // Si el usuario no existe, lo creamos
   if (!owner) {
   try {
-  owner = await Owner.create({ email, telephone });
-  logger.debug(`Nuevo usuario creado: ${owner.email}, ${owner.telephone}`);
+  owner = await Owner.create({ name, email, telephone });
+  logger.debug(`Nuevo usuario creado: ${owner.name}, ${owner.email}, ${owner.telephone}`);
   } catch (error) {
   logger.error('Error al crear el usuario:', error);
   return new Response(JSON.stringify({ success: false, error: 'Error al crear el usuario' }), { status: 500 });

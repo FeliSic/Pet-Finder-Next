@@ -1,38 +1,45 @@
-// report-weekly-reminder/route.ts
+// app/api/cron/report-weekly-reminder/route.ts
 import { Op } from 'sequelize';
 import { PetsFind, Owner } from 'bknd/models/models';
-import sendEmail from 'lib/nodemailer_email';
+import { sendExpirationReminderEmail } from 'lib/resend_emails';
 
 export async function GET() {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+  // Obtener reportes activos con al menos 7 días de antigüedad y que no hayan recibido recordatorio en los últimos 7 días
   const reportes = await PetsFind.findAll({
     where: {
       active: true,
-      createdAt: { [Op.lte]: sevenDaysAgo }, // solo reportes con al menos 7 días
+      createdAt: { [Op.lte]: sevenDaysAgo },
       [Op.or]: [
-        { lastReminderSent: null },                 // nunca enviado
-        { lastReminderSent: { [Op.lt]: sevenDaysAgo } } // último envío hace más de 7 días
+        { lastReminderSent: null },
+        { lastReminderSent: { [Op.lt]: sevenDaysAgo } }
       ]
     } as any,
     include: [{ model: Owner, as: 'owner' }]
   });
 
+  let sentCount = 0;
   for (const reporte of reportes) {
-    const owner = reporte.get('owner') as Owner;
-    const diasRestantes = Math.max(0, 30 - Math.floor((now.getTime() - new Date(reporte.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
-    
-    await sendEmail(
-      owner.email,
-      '¿Seguís buscando a tu mascota?',
-      `Tu reporte expira en ${diasRestantes} días. ¿Seguís buscando?`
-    );
-    
+    const owner = reporte.get('owner') as Owner; // ✅ acceso seguro
+    const daysRemaining = Math.max(0, 30 - Math.floor((now.getTime() - new Date(reporte.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+
+    // Solo enviar si aún no expiró (días restantes > 0)
+    if (daysRemaining > 0) {
+      await sendExpirationReminderEmail({
+        ownerEmail: owner.email,
+        ownerName: owner.name,
+        petName: reporte.name,
+        daysRemaining,
+      });
+      sentCount++;
+    }
+
     // Actualizar fecha de último envío
     await reporte.update({ lastReminderSent: now });
   }
 
-  console.log(`Recordatorios enviados: ${reportes.length}`);
-  return new Response(JSON.stringify({ success: true, sent: reportes.length }), { status: 200 });
+  console.log(`📧 Recordatorios semanales enviados: ${sentCount}`);
+  return new Response(JSON.stringify({ success: true, sent: sentCount }), { status: 200 });
 }

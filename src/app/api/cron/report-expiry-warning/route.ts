@@ -1,31 +1,38 @@
-// report-expiry-warning/route.ts
+// app/api/cron/report-expiry-warning/route.ts
 import { Op } from 'sequelize';
 import { PetsFind, Owner } from 'bknd/models/models';
-import sendEmail from 'lib/nodemailer_email';
+import { sendExpirationReminderEmail } from 'lib/resend_emails';
 
 export async function GET() {
-  // Reportes que vencen mañana (día 29)
-  // TODO: completar cuando estén definidos los modelos Pets con campo active y asociación con Owner
-  const desde = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
-  const hasta = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
 
   const reportes = await PetsFind.findAll({
     where: {
-      createdAt: { [Op.between]: [desde, hasta] },
-      active: true
+      active: true,
+      createdAt: {
+        [Op.between]: [
+          new Date(tomorrow.getTime() - 30 * 24 * 60 * 60 * 1000),
+          new Date(tomorrow.getTime() - 29 * 24 * 60 * 60 * 1000)
+        ]
+      }
     },
     include: [{ model: Owner, as: 'owner' }]
   });
 
+  let sentCount = 0;
   for (const reporte of reportes) {
     const owner = reporte.get('owner') as Owner;
-    await sendEmail(
-      owner.email,
-      'Tu reporte expira mañana',
-      `Tu reporte expira en 24hs. Podés renovarlo entrando a la app.`
-    );
+    await sendExpirationReminderEmail({
+      ownerEmail: owner.email,
+      ownerName: owner.name,
+      petName: reporte.name,
+      daysRemaining: 1, // expira mañana
+    });
+    sentCount++;
   }
 
-  console.log(`Avisos de expiración enviados: ${reportes.length}`);
-  return new Response(JSON.stringify({ success: true, sent: reportes.length }), { status: 200 });
+  console.log(`⚠️ Avisos de expiración (día 29) enviados: ${sentCount}`);
+  return new Response(JSON.stringify({ success: true, sent: sentCount }), { status: 200 });
 }

@@ -5,6 +5,7 @@ import { LogInContainer, LogInForm, FormInput, FormButton, SubtitleIngresar } fr
 import { Tiny } from '@/ui/typography';
 
 export default function LogIn() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [telephone, setTelePhone] = useState(0); // Inicializa como null
   const [code, setCode] = useState('');
@@ -22,7 +23,7 @@ export default function LogIn() {
         setStep(3); // Avanzar al siguiente paso
       }
     } else if (step === 3) {
-      const result = await sendAuthEmail(email, telephone);
+      const result = await sendAuthEmail(name,email, telephone);
       console.log(result);
       if (result.success) {
         setStep(4); // Avanzar al paso de código
@@ -78,6 +79,13 @@ export default function LogIn() {
         {step === 3 && (
           <>
             <SubtitleIngresar>Ingresar</SubtitleIngresar>
+            <FormInput 
+              type="name" 
+              placeholder="Nombre y apellido" 
+              value={name}
+              required
+              onChange={(e) => setName(e.target.value)} 
+            />
             <FormInput 
               type="email" 
               placeholder="Email de contacto y cuenta" 
