@@ -12,22 +12,28 @@ export const sendingEmail = async (req: Request) => {
   const body = await req.json()
   const name = body.name
   const email = body.email
+  const allowLocationNotifications = body.allowLocationNotifications
   const telephone = body.telephone
   logger.debug(`Solicitud de envío de email recibida para: ${email}`);
   console.log(`Email obtenido: ${email}`);
 
   // Aquí iría la lógica para buscar/crear el registro en la base de datos
   let owner = await Owner.findOne({ where: { email } });
-  // Si el usuario no existe, lo creamos
+
   if (!owner) {
-  try {
-  owner = await Owner.create({ name, email, telephone });
-  logger.debug(`Nuevo usuario creado: ${owner.name}, ${owner.email}, ${owner.telephone}`);
-  } catch (error) {
-  logger.error('Error al crear el usuario:', error);
-  return new Response(JSON.stringify({ success: false, error: 'Error al crear el usuario' }), { status: 500 });
+    // Crear nuevo usuario
+    try {
+      owner = await Owner.create({ name, email, telephone, allowLocationNotifications });
+      logger.debug(`Nuevo usuario creado: ${owner.name}, ${owner.email}, ${owner.telephone}`);
+    } catch (error) {
+      logger.error('Error al crear el usuario:', error);
+      return new Response(JSON.stringify({ success: false, error: 'Error al crear el usuario' }), { status: 500 });
+    }
+    } else {
+    // ✅ Solo actualizar allowLocationNotifications (sin tocar name, email, telephone)
+    await owner.update({ allowLocationNotifications });
+    logger.debug(`Usuario actualizado: allowLocationNotifications = ${allowLocationNotifications}`);
   }
-}
   
    // Verificar si ya hay un código válido para este usuario
   const existingAuth = await AuthOwner.findOne({

@@ -1,4 +1,6 @@
 /* global.css */
+@import 'leaflet/dist/leaflet.css';
+
 * {
   box-sizing: border-box;
   margin: 0;

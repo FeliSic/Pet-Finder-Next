@@ -106,3 +106,50 @@ export async function sendExpirationReminderEmail({
     html,
   });
 }
+
+// Reportes cercanos por busqueda pasiva --------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+export async function sendNearbyReportEmail({
+  userEmail,
+  userName,
+  reports,
+  reportCount
+}: {
+  userEmail: string;
+  userName: string;
+  reports: any[];
+  reportCount: number;
+}) {
+  // Mock en desarrollo
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📧 MOCK EMAIL (nuevos reportes cerca)');
+    console.log('Para:', userEmail);
+    console.log('Asunto:', `🐾 ${reportCount} nuevo(s) reporte(s) cerca de tu zona`);
+    console.log('Contenido:', `
+      Hola ${userName},
+      Hay ${reportCount} reporte(s) de mascotas perdidas cerca de tu zona:
+      ${reports.map(r => `- ${r.name} (visto en ${r.lastSeen})`).join('\n')}
+      Podés verlos en PetFinder y dar aviso si los encuentras.
+    `);
+    return;
+  }
+
+  const from = 'PetFinder <notificaciones@tudominio.com>';
+  const reportList = reports.map(r => `<li><strong>${r.name}</strong> - última vez: ${r.lastSeen}</li>`).join('');
+  const html = `
+    <h2>¡Hola ${userName}!</h2>
+    <p>Hay <strong>${reportCount}</strong> nuevo(s) reporte(s) de mascotas perdidas cerca de tu zona:</p>
+    <ul>${reportList}</ul>
+    <p>Podés ingresar a PetFinder para ver los detalles y dar aviso si tienes información.</p>
+    <p>¡Gracias por ayudar!</p>
+  `;
+
+  await resend.emails.send({
+    from,
+    to: userEmail,
+    subject: `🐾 ${reportCount} nuevo(s) reporte(s) cerca de tu zona`,
+    html,
+  });
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------------

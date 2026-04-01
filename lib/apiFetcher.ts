@@ -25,14 +25,14 @@ export async function fetchAPI(endpoint: string, requiresAuth: boolean = true): 
 
 // User Fetchings -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-export function sendAuthEmail(name: string, email: string, telephone: number): Promise<{ success: boolean; error?: string }> {
+export function sendAuthEmail(name: string, email: string, telephone: number,  allowLocationNotifications: boolean): Promise<{ success: boolean; error?: string }> {
   console.log(telephone)
   return fetch('/api/auth', {
     method: 'POST', 
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ name, email, telephone }),
+    body: JSON.stringify({ name, email, telephone, allowLocationNotifications }),
     
   })
     .then(response => response.json())

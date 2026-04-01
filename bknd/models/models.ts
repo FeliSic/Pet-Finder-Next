@@ -42,6 +42,7 @@ interface OwnerAttributes {
     name?: string;
     email: string;
     telephone?: string;
+    allowLocationNotifications: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -51,6 +52,7 @@ export class Owner extends Model<OwnerAttributes> implements OwnerAttributes {
   declare name: string;
   declare email: string;
   declare telephone: string;
+  declare allowLocationNotifications: boolean;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -69,24 +71,36 @@ export class AuthOwner extends Model<AuthOwnerAttributes> implements AuthOwnerAt
   declare expiration: Date;
 }
 
-interface PushSubscriptionAttributes {
+interface UserLocationAttributes {
   id?: number;
   userId: number;
-  endpoint: string;
-  p256dh: string;
-  auth: string;
+  latitude: number;   
+  longitude: number;  
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export class PushSubscription extends Model<PushSubscriptionAttributes> implements PushSubscriptionAttributes {
+export class UserLocation extends Model<UserLocationAttributes> implements UserLocationAttributes {
   declare id?: number;
   declare userId: number;
-  declare endpoint: string;
-  declare p256dh: string;
-  declare auth: string;
+  declare latitude: number;
+  declare longitude: number;
   declare createdAt: Date;
   declare updatedAt: Date;
+}
+
+interface ReportNotificationAttributes {
+  id?: number;
+  reportId: number;
+  userId: number;       
+  notifiedAt?: Date;     
+}
+
+export class ReportNotification extends Model<ReportNotificationAttributes> implements ReportNotificationAttributes {
+  declare id?: number;
+  declare reportId: number;
+  declare userId: number;
+  declare notifiedAt?: Date;
 }
 
 
@@ -184,7 +198,12 @@ Owner.init(
     telephone: {
       type: DataTypes.STRING,
       allowNull: true,
-    }
+    },
+      allowLocationNotifications: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
   },
   {
     sequelize: sequelizeClient,
@@ -228,21 +247,83 @@ AuthOwner.init(
 
 //--------------------------------------------------------------------------------------------------------------------------------------
 
-PushSubscription.init(
-  {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    userId: { type: DataTypes.INTEGER, allowNull: false },
-    endpoint: { type: DataTypes.TEXT, allowNull: false },
-    p256dh: { type: DataTypes.TEXT, allowNull: false },
-    auth: { type: DataTypes.TEXT, allowNull: false },
-  },
-  {
+  UserLocation.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        unique: true,
+        references: {
+          model: 'Owner_pets',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+      latitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+      },
+      longitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+      },
+    }, {
+  sequelize: sequelizeClient,
+  modelName: 'UserLocation',
+  tableName: 'UserLocations',
+  timestamps: true, // createdAt, updatedAt
+});
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------
+
+  ReportNotification.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      reportId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'pets',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Owner_pets',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+      notifiedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+    }, {
     sequelize: sequelizeClient,
-    modelName: 'PushSubscription',
-    tableName: 'push_subscriptions',
-    timestamps: true,
-  }
-);
+    modelName: 'ReportNotification',
+    tableName: 'ReportNotifications',
+    timestamps: false, // no necesitamos createdAt/updatedAt, solo el campo notifiedAt
+    // Para evitar duplicados (reportId + userId) puedes agregar un índice único si lo deseas
+    indexes: [
+      {
+        unique: true,
+        fields: ['reportId', 'userId'],
+      },
+    ],
+  });
 
 //--------------------------------------------------------------------------------------------------------------------------------------
 
@@ -256,8 +337,14 @@ function setupAssociations() {
   Owner.hasOne(AuthOwner, { foreignKey: 'userId' });
   AuthOwner.belongsTo(Owner, { foreignKey: 'userId' });
 
-  Owner.hasMany(PushSubscription, { foreignKey: 'userId' });
-  PushSubscription.belongsTo(Owner, { foreignKey: 'userId' });
+  Owner.hasOne(UserLocation, { foreignKey: 'userId', as: 'location' });
+  UserLocation.belongsTo(Owner, { foreignKey: 'userId', as: 'owner' });
+
+  Owner.hasMany(ReportNotification, { foreignKey: 'userId', as: 'reportNotifications' });
+  ReportNotification.belongsTo(Owner, { foreignKey: 'userId', as: 'owner' });
+
+  PetsFind.hasMany(ReportNotification, { foreignKey: 'reportId', as: 'reportNotifications' });
+  ReportNotification.belongsTo(PetsFind, { foreignKey: 'reportId', as: 'report' });
 }
 
 // ✅ Llamar a las relaciones

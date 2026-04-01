@@ -11,6 +11,7 @@ export default function LogIn() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState(1); // Estado para el paso actual
   const [termsAccepted, setTermsAccepted] = useState(false); // Estado para los términos
+  const [allowLocationNotifications, setallowLocationNotifications] = useState(true); // Estado para los términos
 
   const handleEmailSubmit = async (e: any) => {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function LogIn() {
         setStep(3); // Avanzar al siguiente paso
       }
     } else if (step === 3) {
-      const result = await sendAuthEmail(name,email, telephone);
+      const result = await sendAuthEmail(name,email, telephone, allowLocationNotifications);
       console.log(result);
       if (result.success) {
         setStep(4); // Avanzar al paso de código
@@ -67,6 +68,14 @@ export default function LogIn() {
                 required 
               />
               Acepto los términos y condiciones
+            </label>
+            <label style={{ marginTop: '10px', display: 'block' }}>
+              <input 
+                type="checkbox" 
+                checked={allowLocationNotifications} 
+                onChange={(e) => {setallowLocationNotifications(e.target.checked);console.log('allowLocationNotifications changed to', e.target.checked);}}
+              />
+              Quiero recibir notificaciones por email cuando haya reportes de mascotas perdidas cerca de mi zona (puedo desactivar luego en mi perfil)
             </label>
             <FormButton 
               type="submit" 

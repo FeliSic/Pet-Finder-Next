@@ -5,7 +5,7 @@ import { BlueButton, YellowButton } from "@/ui/buttons";
 import { SearcherForm } from "../../ui/form/index";
 import { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
+
 
 // Importar L dinámicamente solo en cliente
 let L: any;
@@ -76,11 +76,12 @@ export default function Hub({ query }: { query: string }) {
 
   // Ubicación de prueba (Buenos Aires)
   const useMockLocation = () => {
-    const mockLat = -34.6037;
-    const mockLng = -58.3816;
-    setLocation({ lat: mockLat, lng: mockLng });
-    fetchNearbyReports(mockLat, mockLng);
-  };
+  const mockLat = -34.6037;
+  const mockLng = -58.3816;
+  setLocation({ lat: mockLat, lng: mockLng });
+  fetchNearbyReports(mockLat, mockLng);
+  updateLocation(mockLat, mockLng).catch(err => console.error('Error guardando ubicación mock:', err));
+};
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
@@ -89,11 +90,13 @@ export default function Hub({ query }: { query: string }) {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
+         navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         setLocation({ lat: latitude, lng: longitude });
         await fetchNearbyReports(latitude, longitude);
+        // Guardar ubicación para notificaciones pasivas
+        await updateLocation(latitude, longitude).catch(err => console.error('Error guardando ubicación:', err));
       },
       (error) => {
         console.error("Error obteniendo ubicación:", error);
@@ -150,6 +153,17 @@ export default function Hub({ query }: { query: string }) {
       alert('Error de conexión');
     }
   };
+  
+  const updateLocation = async (lat: number, lng: number) => {
+  const userId = localStorage.getItem('userId');
+  if (!userId) return;
+  await fetch('/api/me/location', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, latitude: lat, longitude: lng }),
+  });
+};
+
 
   // Si ya tenemos ubicación, mostrar el mapa
   if (location) {
@@ -282,15 +296,15 @@ export default function Hub({ query }: { query: string }) {
 }
 
 
-export const LogInForm = styled.form`
-    display: flex;
-    width: 400px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    background-color: #000;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
+// export const LogInForm = styled.form`
+//     display: flex;
+//     width: 400px;
+//     flex-direction: column;
+//     align-items: center;
+//     justify-content: center;
+//     gap: 1rem;
+//     background-color: #000;
+//     padding: 2rem;
+//     border-radius: 8px;
+//     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+// `;
