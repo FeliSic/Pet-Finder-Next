@@ -103,12 +103,12 @@ export function HeaderUi({ children, toggleMenu, menuOpen, owner, handleLogout, 
   return (
     <HeaderRectangle>
       <ContainerHeaderButton>
-        <Link href="/home">
+        <Link className="hover-scale hover-scale3" href="/home">
           <ISOHuellita className="pet-logo" /> {/* Logo completo */}
           <TotalPetLogo className="total-logo"></TotalPetLogo>
         </Link>
         {children}
-        <ContainerHamburger onClick={() => {
+        <ContainerHamburger className="hover-scale hover-scale3" onClick={() => {
           if (windowWidth < 768) toggleMenu();
         }}>
           <div className="hamburger">
@@ -274,18 +274,18 @@ const Link2 = styled(Link1)`
 export function Footer() {
   return (
     <FooterRectangle>
-      <OptionsContainer>
-      <MyProfile href="/home">Home</MyProfile>
-      <Search href="/MisReportes">Mis Reportes</Search>
-      <Logout href="/">Logout</Logout>
+      <OptionsContainer  >
+      <MyProfile className="hover-scale hover-scale3" href="/home">Home</MyProfile>
+      <Search className="hover-scale hover-scale3" href="/MisReportes">Mis Reportes</Search>
+      <Logout className="hover-scale hover-scale3" href="/">Logout</Logout>
       </OptionsContainer>
       <RedesContainer>
         <RedLabel>
-          <Link1 href="https://www.google.com">My Pet-finder</Link1>
-          <Link2 href="https://www.youtube.com">My Pet-finder</Link2>
+          <Link1 className="hover-scale hover-scale3" href="https://www.google.com">My Pet-finder</Link1>
+          <Link2 className="hover-scale hover-scale3" href="https://www.youtube.com">My Pet-finder</Link2>
         </RedLabel>
-        <div style={{marginRight: "35px"}}>
-          <Link href="/home">
+        <div className="hover-scale hover-scale3 " style={{marginRight: "35px"}}>
+          <Link  href="/home">
           <ISOHuellita></ISOHuellita>
           </Link>
         </div>

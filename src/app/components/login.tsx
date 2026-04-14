@@ -50,11 +50,11 @@ export default function LogIn() {
 
   return (
     <LogInContainer>
-      <LogInForm onSubmit={step === 4 ? handleTokenSubmit : handleEmailSubmit}>
+      <LogInForm className='hover-scale2 hover-scale3' onSubmit={step === 4 ? handleTokenSubmit : handleEmailSubmit}>
         {step === 1 && (
           <>
             <p>¿Qué es Pet Finder? Una pequeña explicación sobre el servicio...</p>
-            <FormButton type="submit">Siguiente</FormButton>
+            <FormButton className='hover-scale2' type="submit">Siguiente</FormButton>
           </>
         )}
         {step === 2 && (

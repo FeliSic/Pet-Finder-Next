@@ -192,7 +192,7 @@ const handleCompleteReport = async (reportId: string) => {
   )}
 
       {!showCard && (
-        <CreateReportButton onClick={handleNewReport}>
+        <CreateReportButton className="hover-scale2 hover-scale3" onClick={handleNewReport}>
           🐾 Crear Reporte
         </CreateReportButton>
       )}

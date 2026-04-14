@@ -141,7 +141,7 @@ export function PetCard({
   onComplete,
 }: CardProps) {
   return (
-    <Rectangle onClick={onNavigate} style={{ border: '5px solid #000' }}>
+    <Rectangle className="hover-scale2" onClick={onNavigate} style={{ border: '5px solid #000' }}>
       <ImageContainer style={{ objectFit: "cover" }}>
         {isEditing ? (
           <>
@@ -205,7 +205,8 @@ export function PetCard({
             <div style={{ marginTop: '8px', fontSize: '0.8rem', color: daysRemaining <= 1 ? 'red' : 'white' }}>
               ⏳ {daysRemaining} días restantes
               {daysRemaining <= 1 && (
-                <GreenButton 
+                <GreenButton
+                  className="hover-scale2 hover-scale3" 
                   style={{ marginLeft: '10px', padding: '4px 8px', fontSize: '0.7rem' }}
                   onClick={() => onRenew?.(reportId!)}
                 >
@@ -216,6 +217,7 @@ export function PetCard({
           )}
             {!isEditing && reportId && onComplete && (
             <GreenButton 
+              className="hover-scale2 hover-scale3"
               style={{ marginLeft: '10px', padding: '4px 8px', fontSize: '0.7rem' }}
               onClick={() => onComplete(reportId!)}
             >
@@ -225,7 +227,8 @@ export function PetCard({
       </OtherRectangle>
 
       {isEditing && (
-        <GreenButton 
+        <GreenButton
+          className="hover-scale2 hover-scale3" 
           style={{ width: "100%", padding: "10px" }}
           onClick={onSubmit}
         >

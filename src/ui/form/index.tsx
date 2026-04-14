@@ -24,7 +24,6 @@ export const LogInForm = styled.form`
     background-color: #242424;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 export const FormInput = styled(Input)`
@@ -43,7 +42,6 @@ export const SearcherForm = styled.div`
     background-color: #242424;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 export const FormButton = styled(YellowButton).attrs(props => ({

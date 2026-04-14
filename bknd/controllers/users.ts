@@ -1,19 +1,17 @@
-import { Owner, AuthOwner } from '../models/models';
+import { Owner, AuthOwner } from "../models/models";
 import { Op } from "sequelize";
 import { generateToken, verifyToken } from "../../lib/jwt-auth";
 import logger from "../../lib/winston-logger";
 import parseBearerToken from "parse-bearer-token";
 
-
 // Controlador para manejar el envío de emails con códigos de autenticación osea /auth con metodo POST
 
-
 export const sendingEmail = async (req: Request) => {
-  const body = await req.json()
-  const name = body.name
-  const email = body.email
-  const allowLocationNotifications = body.allowLocationNotifications
-  const telephone = body.telephone
+  const body = await req.json();
+  const name = body.name;
+  const email = body.email;
+  const allowLocationNotifications = body.allowLocationNotifications;
+  const telephone = body.telephone;
   logger.debug(`Solicitud de envío de email recibida para: ${email}`);
   console.log(`Email obtenido: ${email}`);
 
@@ -23,19 +21,31 @@ export const sendingEmail = async (req: Request) => {
   if (!owner) {
     // Crear nuevo usuario
     try {
-      owner = await Owner.create({ name, email, telephone, allowLocationNotifications });
-      logger.debug(`Nuevo usuario creado: ${owner.name}, ${owner.email}, ${owner.telephone}`);
+      owner = await Owner.create({
+        name,
+        email,
+        telephone,
+        allowLocationNotifications,
+      });
+      logger.debug(
+        `Nuevo usuario creado: ${owner.name}, ${owner.email}, ${owner.telephone}`,
+      );
     } catch (error) {
-      logger.error('Error al crear el usuario:', error);
-      return new Response(JSON.stringify({ success: false, error: 'Error al crear el usuario' }), { status: 500 });
+      logger.error("Error al crear el usuario:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Error al crear el usuario" }),
+        { status: 500 },
+      );
     }
-    } else {
+  } else {
     // ✅ Solo actualizar allowLocationNotifications (sin tocar name, email, telephone)
     await owner.update({ allowLocationNotifications });
-    logger.debug(`Usuario actualizado: allowLocationNotifications = ${allowLocationNotifications}`);
+    logger.debug(
+      `Usuario actualizado: allowLocationNotifications = ${allowLocationNotifications}`,
+    );
   }
-  
-   // Verificar si ya hay un código válido para este usuario
+
+  // Verificar si ya hay un código válido para este usuario
   const existingAuth = await AuthOwner.findOne({
     where: {
       userId: owner.id,
@@ -45,26 +55,40 @@ export const sendingEmail = async (req: Request) => {
   logger.debug(`Registro de autenticación existente: ${existingAuth}`);
   if (existingAuth) {
     logger.warn(`Ya existe un código activo para el usuario ID: ${owner.id}`);
-    return new Response(JSON.stringify({ success: true, message: 'Ya existe un código activo, revisá tu email' }), { status: 429 });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Ya existe un código activo, revisá tu email",
+      }),
+      { status: 429 },
+    );
   }
 
-
   // si no existe va la lógica para generar el código de autenticación
-  const code = generateToken(owner.id, '15m');
+  const code = generateToken(owner.id, "15m");
   logger.debug(`Código generado: ${code}`);
-  // almacenarlo en la base de datos (tabla Auth)  
+  // almacenarlo en la base de datos (tabla Auth)
   const authRecord = await AuthOwner.create({
     userId: owner.id,
     code,
     expiration: new Date(Date.now() + 15 * 60 * 1000), // 15 mins desde ahora
   });
-  logger.debug(`Código almacenado en la base de datos para el usuario ID: ${owner.id}`, authRecord);
+  logger.debug(
+    `Código almacenado en la base de datos para el usuario ID: ${owner.id}`,
+    authRecord,
+  );
   // Aquí iría la lógica para enviar el email con el código
   // y enviar el código por email.
   // await sendEmail(email, 'Tu código de autenticación', `Tu código es: ${code}`);
   logger.debug(`codigo enviado al email: ${email}`);
   // Al final, envías una respuesta
-  return new Response(JSON.stringify({ success: true,  message: "Email procesado correctamente." }), { status: 200});
+  return new Response(
+    JSON.stringify({
+      success: true,
+      message: "Email procesado correctamente.",
+    }),
+    { status: 200 },
+  );
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -77,8 +101,12 @@ export async function verifyAuthCode(request: Request) {
 
   const owner = await Owner.findOne({ where: { email } });
   if (!owner) {
-    logger.warn(`Usuario no encontrado durante la verificación del código: ${email}`);
-    return new Response(JSON.stringify({ message: 'Usuario no encontrado' }), { status: 404 });
+    logger.warn(
+      `Usuario no encontrado durante la verificación del código: ${email}`,
+    );
+    return new Response(JSON.stringify({ message: "Usuario no encontrado" }), {
+      status: 404,
+    });
   }
   logger.debug(`Usuario encontrado: ${owner}`);
 
@@ -92,19 +120,28 @@ export async function verifyAuthCode(request: Request) {
   logger.debug(`Registro de autenticación encontrado: ${authRecord}`);
 
   if (!authRecord) {
-    return new Response(JSON.stringify({ message: 'Código inválido o expirado' }), { status: 400 });
+    return new Response(
+      JSON.stringify({ message: "Código inválido o expirado" }),
+      { status: 400 },
+    );
   }
 
-  const token = generateToken(owner.id, '2h');
-  logger.debug(`Código verificado. Token generado para el usuario ID: ${owner.id}`, token);
+  const token = generateToken(owner.id, "2h");
+  logger.debug(
+    `Código verificado. Token generado para el usuario ID: ${owner.id}`,
+    token,
+  );
 
-  return new Response(JSON.stringify({ token, email: owner.email, userId: owner.id }), { status: 200 });
+  return new Response(
+    JSON.stringify({ token, email: owner.email, userId: owner.id }),
+    { status: 200 },
+  );
 }
 
 // ---------------------------------------------------------------------------------------------
 
 // Controlador para manejar la obtención de la información del usuario en cuestión a travez de una request con un token. Es /me con metodo GET
-import { IncomingMessage } from 'http';
+import { IncomingMessage } from "http";
 function createIncomingMessage(request: Request): IncomingMessage {
   const headers: { [key: string]: string } = {};
   request.headers.forEach((value, key) => {
@@ -118,38 +155,47 @@ function createIncomingMessage(request: Request): IncomingMessage {
   } as IncomingMessage;
 }
 
-
 export async function getMe(request: Request) {
   const incomingMessage = createIncomingMessage(request);
-  
+
   // Usar la función de la librería con el header
   const token = parseBearerToken(incomingMessage);
-  console.log('Token extraído con parseBearerToken:', token);
+  console.log("Token extraído con parseBearerToken:", token);
   logger.debug(`Token extraído con parse-bearer-token: ${token}`);
 
   if (!token) {
-    logger.warn(`Token incorrecto o ausente durante la obtención de información del usuario: ${token}`);
-    return new Response(JSON.stringify({ message: 'Token incorrecto' }), { status: 401 });
+    logger.warn(
+      `Token incorrecto o ausente durante la obtención de información del usuario: ${token}`,
+    );
+    return new Response(JSON.stringify({ message: "Token incorrecto" }), {
+      status: 401,
+    });
   }
 
   const tokenData = verifyToken(token);
   logger.debug(`Datos del token verificado: ${tokenData}`);
 
-  if (!tokenData || typeof tokenData === 'string') {
-    logger.error(`Token inválido durante la obtención de información del usuario: ${tokenData}`);
-    return new Response(JSON.stringify({ message: 'Token inválido' }), { status: 401 });
+  if (!tokenData || typeof tokenData === "string") {
+    logger.error(
+      `Token inválido durante la obtención de información del usuario: ${tokenData}`,
+    );
+    return new Response(JSON.stringify({ message: "Token inválido" }), {
+      status: 401,
+    });
   }
 
   const userId = tokenData.id;
   logger.debug(`Token verificado para el usuario ID: ${userId}`);
 
   const owner = await Owner.findByPk(userId, {
-    attributes: ['id', 'email', 'telephone', 'createdAt', 'updatedAt'],
+    attributes: ["id", "email", "telephone", "createdAt", "updatedAt"],
   });
 
   if (!owner) {
     logger.error(`Usuario no encontrado: ${owner}`);
-    return new Response(JSON.stringify({ message: 'Usuario no encontrado' }), { status: 404 });
+    return new Response(JSON.stringify({ message: "Usuario no encontrado" }), {
+      status: 404,
+    });
   }
 
   logger.debug(`Información del usuario encontrada: ${owner}`);
@@ -207,4 +253,3 @@ export async function getMe(request: Request) {
 //   // Enviar la información actualizada del usuario en la respuesta
 //   res.status(200).json({ owner });
 // }
-
