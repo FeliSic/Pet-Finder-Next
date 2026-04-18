@@ -13,8 +13,25 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMe } from "lib/hooks";
 import { mutate } from "swr";
 
+const demoUser = {
+  id: 1000,
+  name: "Demo User",
+  email: "demo@demo.com",
+  phone: "123456789",
+};
+
 export function Header() {
-  const { data, error, isLoading } = useMe();
+  const [isDemo, setIsDemo] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("apiToken");
+    setIsDemo(token === "demo-token");
+    setHydrated(true);
+  }, []);
+  const shouldFetch = !isDemo && hydrated;
+  const { data, error, isLoading } = useMe(shouldFetch);
+  const userData = isDemo ? { owner: demoUser } : data;
   console.log(data);
   const pathname = usePathname();
   const router = useRouter();
@@ -60,7 +77,7 @@ export function Header() {
       <HeaderUi
         toggleMenu={toggleMenu}
         menuOpen={menuOpen}
-        owner={data?.owner}
+        owner={userData?.owner}
         handleLogout={handleLogout}
         windowWidth={windowWidth}
       >
@@ -90,9 +107,9 @@ export function Header() {
               marginTop: "20px",
             }}
           >
-            <UserEmail>{data.owner.email}</UserEmail>{" "}
+            <UserEmail>{userData?.owner?.email}</UserEmail>{" "}
             {/* Muestra el email del usuario */}
-            <UserPhone>{data.owner.telephone}</UserPhone>{" "}
+            <UserPhone>{userData?.owner?.telephone}</UserPhone>{" "}
             {/* Muestra el telefono del usuario */}
             <LogoutButton onClick={() => handleLogout("/")}>
               Cerrar Sesión

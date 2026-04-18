@@ -5,6 +5,16 @@ import { geocodeAddress, reverseGeocode } from "../../../lib/geocoding";
 import MapPickerWrap from "./MapPickerWrapper";
 
 export function AllMyReports() {
+  const [demoToast, setDemoToast] = useState(false);
+  const mockReport = {
+    id: "mock-1",
+    name: "Firulais (Demo)",
+    description:
+      "Este es un reporte de ejemplo para mostrar cómo se verán tus mascotas",
+    imageUrl: process.env.NEXT_PUBLIC_DEMO_IMG,
+    lastSeen: "Plaza principal - hace 2 horas",
+    daysRemaining: 12,
+  };
   const [showCard, setShowCard] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -39,9 +49,12 @@ export function AllMyReports() {
           const diffTime =
             createdAt.getTime() + 30 * 24 * 60 * 60 * 1000 - now.getTime();
           const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
           return { ...report, daysRemaining };
         });
-        setReports(reportsWithDays);
+
+        // 👇 SIEMPRE agregás el mock arriba
+        setReports([mockReport, ...reportsWithDays]);
       } else {
         console.error("Error del servidor:", result.error);
       }
@@ -82,6 +95,18 @@ export function AllMyReports() {
   };
 
   const handleCreateReport = async () => {
+    const isDemo = localStorage.getItem("apiToken") === "demo-token";
+
+    if (isDemo) {
+      setDemoToast(true);
+
+      setTimeout(() => {
+        setDemoToast(false);
+      }, 2500);
+
+      return;
+    }
+
     if (!selectedCoords) {
       alert(
         "Por favor selecciona una ubicación válida en el mapa o ingresa una dirección válida.",
@@ -168,6 +193,26 @@ export function AllMyReports() {
         backgroundColor: "#111",
       }}
     >
+      {/* 👇 TOAST ARRIBA DE TODO */}
+      {demoToast && (
+        <div
+          style={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#4CAF50",
+            color: "white",
+            padding: "12px 20px",
+            borderRadius: "8px",
+            zIndex: 9999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          🧪 Simulación: reporte creado correctamente
+        </div>
+      )}
+
       {/* Lista de reportes existentes */}
       {reports.map((report) => (
         <PetCard

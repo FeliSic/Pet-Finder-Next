@@ -56,7 +56,12 @@ export default function Hub({ query }: { query: string }) {
   const [message, setMessage] = useState("");
   const [userIcon, setUserIcon] = useState<any>(null);
   const [petIcon, setPetIcon] = useState<any>(null);
+  const [isDemo, setIsDemo] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem("apiToken");
+    setIsDemo(token === "demo-token");
+  }, []);
   // Crear íconos personalizados solo en el cliente
   useEffect(() => {
     if (typeof window !== "undefined" && L) {
@@ -79,6 +84,21 @@ export default function Hub({ query }: { query: string }) {
 
   // Obtener reportes cercanos a una ubicación
   const fetchNearbyReports = async (lat: number, lng: number) => {
+    if (isDemo) {
+      const DemoImg = process.env.NEXT_PUBLIC_DEMO_IMG;
+      setReports([
+        {
+          id: 1,
+          name: "Firulais",
+          description: "Perro perdido en la plaza",
+          latitude: lat + 0.001,
+          longitude: lng + 0.001,
+          lastSeen: "Hace 2 horas",
+          imageUrl: DemoImg,
+        },
+      ]);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(
@@ -101,9 +121,9 @@ export default function Hub({ query }: { query: string }) {
     const mockLng = -58.3816;
     setLocation({ lat: mockLat, lng: mockLng });
     fetchNearbyReports(mockLat, mockLng);
-    updateLocation(mockLat, mockLng).catch((err) =>
-      console.error("Error guardando ubicación mock:", err),
-    );
+    if (!isDemo) {
+      updateLocation(mockLat, mockLng);
+    }
   };
 
   const handleGeolocation = () => {
@@ -147,7 +167,12 @@ export default function Hub({ query }: { query: string }) {
       alert("Escribe un mensaje antes de enviar");
       return;
     }
-
+    if (isDemo) {
+      alert("Demo: aviso simulado enviado ✅");
+      setShowNotifyModal(false);
+      setMessage("");
+      return;
+    }
     const userId = localStorage.getItem("userId");
     if (!userId) {
       alert("Debes iniciar sesión para enviar un aviso");
@@ -393,7 +418,9 @@ export default function Hub({ query }: { query: string }) {
           <>
             <TitleCentrado>El mejor Pet-finder del mundo</TitleCentrado>
             <SearcherButt className="hover-scale2" onClick={handleGeolocation}>
-              Iniciar Geolocalización
+              {isDemo
+                ? "Probar demo (ubicación simulada)"
+                : "Iniciar Geolocalización"}
             </SearcherButt>
             <WhatButt className="hover-scale2" onClick={handleShowInfo}>
               ¿Que es Pet Finder?
@@ -418,16 +445,3 @@ export default function Hub({ query }: { query: string }) {
     </div>
   );
 }
-
-// export const LogInForm = styled.form`
-//     display: flex;
-//     width: 400px;
-//     flex-direction: column;
-//     align-items: center;
-//     justify-content: center;
-//     gap: 1rem;
-//     background-color: #000;
-//     padding: 2rem;
-//     border-radius: 8px;
-//     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-// `;
